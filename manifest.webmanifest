@@ -1,0 +1,20 @@
+{
+  "name": "Tobias Reifenberg & Kollegen - ABC Analyse & Vertriebs-Dashboard",
+  "short_name": "TRK Dashboard",
+  "description": "Interne Agenturplattform fuer ABC Analyse, Termine, Antraege und Vertriebskennzahlen.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1f2937",
+  "lang": "de-DE",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

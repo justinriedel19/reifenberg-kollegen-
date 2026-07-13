@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#1f2937">
+    <meta name="description" content="Interne Agenturplattform fuer ABC Analyse, Termine, Antraege und Vertriebskennzahlen.">
+    <title>Tobias Reifenberg &amp; Kollegen - ABC Analyse &amp; Vertriebs-Dashboard</title>
+    <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div id="configBanner" class="config-banner hidden" role="status">
+      Firebase ist noch nicht konfiguriert. Trage deine Projektwerte in firebase-config.js ein.
+    </div>
+
+    <main id="loginView" class="login-view">
+      <section class="login-panel" aria-labelledby="loginTitle">
+        <div class="brand-lockup login-brand">
+          <span class="brand-mark" aria-hidden="true">TR</span>
+          <div>
+            <p class="eyebrow">Interne Agenturplattform</p>
+            <h1 id="loginTitle">Tobias Reifenberg &amp; Kollegen</h1>
+            <p>ABC Analyse &amp; Vertriebs-Dashboard</p>
+          </div>
+        </div>
+
+        <form id="loginForm" class="login-form">
+          <div class="field">
+            <label for="loginEmail">E-Mail</label>
+            <input id="loginEmail" name="email" type="email" autocomplete="username" required>
+          </div>
+          <div class="field">
+            <label for="loginPassword">Passwort</label>
+            <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+          </div>
+          <p id="loginError" class="form-message error" role="alert"></p>
+          <button id="loginButton" class="primary-button" type="submit">Anmelden</button>
+        </form>
+      </section>
+    </main>
+
+    <div id="appView" class="app-shell hidden">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <span class="brand-mark" aria-hidden="true">TR</span>
+          <div>
+            <p class="eyebrow">Tobias Reifenberg &amp; Kollegen</p>
+            <h1>ABC Analyse &amp; Vertriebs-Dashboard</h1>
+          </div>
+        </div>
+
+        <div class="user-strip">
+          <div>
+            <strong id="currentUserName">-</strong>
+            <span id="currentUserEmail">-</span>
+          </div>
+          <span id="currentUserRole" class="role-badge">-</span>
+          <button id="logoutButton" class="ghost-button" type="button">Abmelden</button>
+        </div>
+      </header>
+
+      <nav class="main-tabs" aria-label="Hauptnavigation">
+        <button class="tab-button is-active" type="button" data-page="abc">ABC Analyse</button>
+        <button class="tab-button" type="button" data-page="sales">Vertriebs-Dashboard</button>
+      </nav>
+
+      <section id="loadingState" class="loading-state hidden" role="status">
+        <span class="loader" aria-hidden="true"></span>
+        Daten werden geladen...
+      </section>
+
+      <main class="workspace">
+        <section id="abcPage" class="page is-active" aria-labelledby="abcTitle">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Priorisieren und nachhalten</p>
+              <h2 id="abcTitle">ABC Analyse</h2>
+            </div>
+            <p>Aufgaben nach Wirkung, Dringlichkeit und Status.</p>
+          </div>
+
+          <div id="abcKpis" class="kpi-grid" aria-live="polite"></div>
+
+          <section class="panel form-panel" aria-labelledby="taskFormTitle">
+            <div class="panel-head">
+              <h3 id="taskFormTitle">Aufgabe anlegen</h3>
+              <button id="cancelTaskEdit" class="subtle-button hidden" type="button">Bearbeitung abbrechen</button>
+            </div>
+
+            <form id="taskForm" class="responsive-form">
+              <div class="field wide">
+                <label for="taskCustomer">Kunde / Aufgabenname</label>
+                <input id="taskCustomer" name="customerName" type="text" maxlength="120" required>
+              </div>
+              <div class="field wide">
+                <label for="taskDescription">Sachverhalt / Beschreibung</label>
+                <textarea id="taskDescription" name="description" rows="3" maxlength="1200" required></textarea>
+              </div>
+              <div class="field">
+                <label for="taskCategory">Kategorie</label>
+                <select id="taskCategory" name="category" required>
+                  <option value="A">A - sehr wichtig</option>
+                  <option value="B">B - wichtig</option>
+                  <option value="C">C - spaeter</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="taskDuration">Aufwand / Dauer</label>
+              <input id="taskDuration" name="estimatedDuration" type="text" maxlength="80" placeholder="z. B. 45 Minuten" required>
+              </div>
+              <div class="field">
+                <label for="taskDueDate">Fälligkeitsdatum</label>
+                <input id="taskDueDate" name="dueDate" type="date" required>
+              </div>
+              <div class="field">
+                <label for="taskStatus">Status</label>
+                <select id="taskStatus" name="status" required>
+                  <option value="open">offen</option>
+                  <option value="done">erledigt</option>
+                </select>
+              </div>
+              <p id="taskFormMessage" class="form-message" role="status"></p>
+              <div class="form-actions">
+                <button id="saveTaskButton" class="primary-button" type="submit">Aufgabe speichern</button>
+                <button id="resetTaskButton" class="secondary-button" type="reset">Zurücksetzen</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel filter-panel" aria-labelledby="taskFiltersTitle">
+            <div class="panel-head">
+              <h3 id="taskFiltersTitle">Filter</h3>
+              <button id="resetTaskFilters" class="subtle-button" type="button">Filter zurücksetzen</button>
+            </div>
+            <div id="taskFilters" class="filter-grid">
+              <div class="field wide">
+                <label for="taskSearch">Suche</label>
+                <input id="taskSearch" type="search" placeholder="Kunde oder Sachverhalt">
+              </div>
+              <div class="field">
+                <label for="taskStatusFilter">Status</label>
+                <select id="taskStatusFilter">
+                  <option value="all">Alle Aufgaben</option>
+                  <option value="open">offene Aufgaben</option>
+                  <option value="done">erledigte Aufgaben</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="taskCategoryFilter">Kategorie</label>
+                <select id="taskCategoryFilter">
+                  <option value="all">Alle Kategorien</option>
+                  <option value="A">Kategorie A</option>
+                  <option value="B">Kategorie B</option>
+                  <option value="C">Kategorie C</option>
+                </select>
+              </div>
+              <div class="field admin-only">
+                <label for="taskEmployeeFilter">Mitarbeiter</label>
+                <select id="taskEmployeeFilter">
+                  <option value="all">Alle Mitarbeiter</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel data-panel" aria-labelledby="taskListTitle">
+            <div class="panel-head">
+              <h3 id="taskListTitle">Aufgabenübersicht</h3>
+              <span id="taskCount" class="count-pill">0 Eintraege</span>
+            </div>
+            <div id="taskList" class="table-shell"></div>
+          </section>
+        </section>
+
+        <section id="salesPage" class="page" aria-labelledby="salesTitle">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Termine, Antraege und Zahlen</p>
+              <h2 id="salesTitle">Vertriebs-Dashboard</h2>
+            </div>
+            <p>Aktuelle Vertriebsaktivitäten und Auswertungen.</p>
+          </div>
+
+          <div id="salesKpis" class="kpi-grid" aria-live="polite"></div>
+
+          <section class="panel form-panel" aria-labelledby="salesFormTitle">
+            <div class="panel-head">
+              <h3 id="salesFormTitle">Termin / Antrag anlegen</h3>
+              <button id="cancelSalesEdit" class="subtle-button hidden" type="button">Bearbeitung abbrechen</button>
+            </div>
+
+            <form id="salesForm" class="responsive-form">
+              <div class="field">
+                <label for="salesType">Typ</label>
+                <select id="salesType" name="type" required>
+                  <option value="appointment">Termin</option>
+                  <option value="application">Antrag</option>
+                </select>
+              </div>
+              <div class="field wide">
+                <label for="salesCustomer">Kunde / Interessent</label>
+                <input id="salesCustomer" name="customerName" type="text" maxlength="120" required>
+              </div>
+              <div class="field">
+                <label for="salesCategory">Versicherungssparte</label>
+                <select id="salesCategory" name="productCategory" required>
+                  <option value="Kfz">Kfz</option>
+                  <option value="Hausrat">Hausrat</option>
+                  <option value="Wohngebäude">Wohngebäude</option>
+                  <option value="Unfall">Unfall</option>
+                  <option value="Rechtsschutz">Rechtsschutz</option>
+                  <option value="Zahnzusatz">Zahnzusatz</option>
+                  <option value="Krankenzusatz">Krankenzusatz</option>
+                  <option value="Pflege">Pflege</option>
+                  <option value="Leben / Vorsorge">Leben / Vorsorge</option>
+                  <option value="Haftpflicht">Haftpflicht</option>
+                  <option value="Gewerbe">Gewerbe</option>
+                  <option value="Sonstiges">Sonstiges</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="salesDate">Datum</label>
+                <input id="salesDate" name="date" type="date" required>
+              </div>
+              <div class="field">
+                <label for="salesDueDate">Fällig bis</label>
+                <input id="salesDueDate" name="dueDate" type="date" required>
+              </div>
+              <div class="field">
+                <label for="salesStatus">Status</label>
+                <select id="salesStatus" name="status" required></select>
+              </div>
+              <div class="field wide">
+                <label for="salesNote">Notiz</label>
+                <textarea id="salesNote" name="note" rows="3" maxlength="1200"></textarea>
+              </div>
+
+              <div id="appointmentFields" class="nested-fields">
+                <div class="field">
+                  <label for="appointmentType">Terminart</label>
+                  <select id="appointmentType" name="appointmentType">
+                    <option value="Beratungstermin">Beratungstermin</option>
+                    <option value="Ersttermin">Ersttermin</option>
+                    <option value="Angebotstermin">Angebotstermin</option>
+                    <option value="Nachfass-Termin">Nachfass-Termin</option>
+                    <option value="Servicetermin">Servicetermin</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="applicationFields" class="nested-fields hidden">
+                <div class="field">
+                  <label for="monthlyPremium">monatlicher Beitrag</label>
+                  <input id="monthlyPremium" name="monthlyPremium" type="number" min="0" step="0.01" inputmode="decimal">
+                </div>
+                <div class="field">
+                  <label for="yearlyPremium">jährlicher Beitrag</label>
+                  <input id="yearlyPremium" name="yearlyPremium" type="number" min="0" step="0.01" inputmode="decimal">
+                </div>
+                <div class="field">
+                  <label for="expectedCommission">erwartete Provision</label>
+                  <input id="expectedCommission" name="expectedCommission" type="number" min="0" step="0.01" inputmode="decimal">
+                </div>
+                <div class="field admin-only">
+                  <label for="bonus">Bonus</label>
+                  <input id="bonus" name="bonus" type="number" min="0" step="0.01" inputmode="decimal">
+                </div>
+                <div class="field">
+                  <label for="closingDate">Abschlussdatum</label>
+                  <input id="closingDate" name="closingDate" type="date">
+                </div>
+                <div class="field">
+                  <label for="policyDate">Policierungsdatum</label>
+                  <input id="policyDate" name="policyDate" type="date">
+                </div>
+              </div>
+
+              <p id="salesFormMessage" class="form-message" role="status"></p>
+              <div class="form-actions">
+                <button id="saveSalesButton" class="primary-button" type="submit">Eintrag speichern</button>
+                <button id="resetSalesButton" class="secondary-button" type="reset">Zurücksetzen</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel filter-panel" aria-labelledby="salesFiltersTitle">
+            <div class="panel-head">
+              <h3 id="salesFiltersTitle">Filter</h3>
+              <button id="resetSalesFilters" class="subtle-button" type="button">Filter zurücksetzen</button>
+            </div>
+            <div id="salesFilters" class="filter-grid">
+              <div class="field wide">
+                <label for="salesSearch">Suche</label>
+                <input id="salesSearch" type="search" placeholder="Kunde oder Notiz">
+              </div>
+              <div class="field admin-only">
+                <label for="salesEmployeeFilter">Mitarbeiter</label>
+                <select id="salesEmployeeFilter">
+                  <option value="all">Alle Mitarbeiter</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="salesCategoryFilter">Sparte</label>
+                <select id="salesCategoryFilter">
+                  <option value="all">Alle Sparten</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="salesTypeFilter">Typ</label>
+                <select id="salesTypeFilter">
+                  <option value="all">Termin und Antrag</option>
+                  <option value="appointment">Termin</option>
+                  <option value="application">Antrag</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="salesStatusFilter">Status</label>
+                <select id="salesStatusFilter">
+                  <option value="all">Alle Status</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="salesDateFrom">Datum von</label>
+                <input id="salesDateFrom" type="date">
+              </div>
+              <div class="field">
+                <label for="salesDateTo">Datum bis</label>
+                <input id="salesDateTo" type="date">
+              </div>
+              <div class="field">
+                <label for="salesDueDateFilter">Fälligkeitsdatum</label>
+                <input id="salesDueDateFilter" type="date">
+              </div>
+            </div>
+          </section>
+
+          <section id="employeeEvaluationPanel" class="panel data-panel admin-only" aria-labelledby="employeeEvaluationTitle">
+            <div class="panel-head">
+              <h3 id="employeeEvaluationTitle">Mitarbeiter-Auswertung</h3>
+            </div>
+            <div id="employeeEvaluation" class="table-shell"></div>
+          </section>
+
+          <section class="panel data-panel" aria-labelledby="appointmentsTitle">
+            <div class="panel-head">
+              <h3 id="appointmentsTitle">Tabelle Termine</h3>
+              <span id="appointmentsCount" class="count-pill">0 Eintraege</span>
+            </div>
+            <div id="appointmentsTable" class="table-shell"></div>
+          </section>
+
+          <section class="panel data-panel" aria-labelledby="applicationsTitle">
+            <div class="panel-head">
+              <h3 id="applicationsTitle">Tabelle Anträge</h3>
+              <span id="applicationsCount" class="count-pill">0 Eintraege</span>
+            </div>
+            <div id="applicationsTable" class="table-shell"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
